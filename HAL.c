@@ -2,42 +2,61 @@
 #include<stdint.h>
 #define BOOT_SECTOR_BYTE 512
 #include "HAL.h"
-FILE *fp=NULL;
-static uint16_t BytePerSec;
-/**Read 512 byte Boot System data*/
+/*******************************************************************************
+ * Definitions
+ ******************************************************************************/
+#define BOOT_SECTOR_BYTE 512
+
+/*******************************************************************************
+ * Prototypes
+ ******************************************************************************/
+void HAL_ReadBootSec(uint8_t *BootSecBuff);
+void HAL_ReadSec(unsigned int Address, uint8_t *SecBuff);
+void HAL_ReadMultiSec(unsigned int FirstAddress, int NumOFSec, uint8_t *MultiSecBuff);
+void HAL_File_init(char *FileName);
+void HAL_closeFile();
+/*******************************************************************************
+ * Variables
+ ******************************************************************************/
+FILE *g_Fp=NULL;
+static uint16_t s_BytePerSec;
+/*******************************************************************************
+ * Code
+ ******************************************************************************/
+ 
 void HAL_ReadBootSec(uint8_t *BootSecBuff)
 {
-	rewind(fp);
-	fread(BootSecBuff,1,BOOT_SECTOR_BYTE,fp);
+	rewind(g_Fp);
+	fread(BootSecBuff,1,BOOT_SECTOR_BYTE,g_Fp);
 }
 
 void HAL_ReadSec(unsigned int Address, uint8_t *SecBuff)
 {
-	fseek(fp,Address,0);
-	fread(SecBuff,1,BytePerSec,fp);
+	fseek(g_Fp,Address,0);
+	fread(SecBuff,1,s_BytePerSec,g_Fp);
 }
 
 void HAL_ReadMultiSec(unsigned int FirstAddress, int NumOFSec, uint8_t *MultiSecBuff)
 {
-	unsigned int NumOfByte = NumOFSec * BytePerSec;
-	fseek(fp,FirstAddress,0);
-	fread(MultiSecBuff, 1 , NumOfByte, fp);
+	unsigned int NumOfByte = NumOFSec * s_BytePerSec;
+	fseek(g_Fp,FirstAddress,0);
+	fread(MultiSecBuff, 1 , NumOfByte, g_Fp);
 }
 
 void HAL_File_init(char *FileName)
 {
-	fp=fopen(FileName,"rb");
-	if(fp!=NULL)
+	g_Fp=fopen(FileName,"rb");
+	if(g_Fp!=NULL)
 	{
-		fseek(fp,0x00B,0);
-		fread(&BytePerSec,1,2,fp);
+		fseek(g_Fp,0x00B,0);
+		fread(&s_BytePerSec,1,2,g_Fp);
 	}
 	else
 		printf("Can not open file !!!");
 }
 
-void HAL_closeFile()
+void HAL_CloseFile()
 {
-	fclose(fp);
+	fclose(g_Fp);
 }
 
